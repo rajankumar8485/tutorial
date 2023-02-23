@@ -45,7 +45,7 @@ then
 			LastName=$(echo "${decode_json_data}" | jq -r '.last_name')
 			immigrationStauts=$(echo "${decode_json_data}" | jq -r '.immigrationStauts.allowed')
 
-			echo "User is : ${FirstName} ${LastName} and ImmigrationStatus is ${immigrationStauts}"
+			echo "User is : ${FirstName} ${LastName} and ImmigrationStatus allowed is ${immigrationStauts}"
 		done
 else
     echo "no json data available"
