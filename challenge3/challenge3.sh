@@ -36,7 +36,7 @@ echo $json_data 2> /dev/null || returnvalue=$?
 
 if [[ returnvalue == 0 ]]; 
 then
-    echo "json data is available"    
+  echo "json data is available"    
 		for users in $(echo "${json_data}" | jq -c '.users'); do
 
 			FirstName=$(echo "${users}" | jq -r '.first_name')
