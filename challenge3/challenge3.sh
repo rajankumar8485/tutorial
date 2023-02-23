@@ -30,7 +30,7 @@ json_data = $(cat <<EOF
 			}
 		]
 	}
-	EOF
+EOF
 )
 
 echo $json_data 2> /dev/null || returnvalue=$?
