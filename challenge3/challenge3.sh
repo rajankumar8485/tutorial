@@ -10,7 +10,7 @@ echo $user_data 2> /dev/null || returnvalue=$?
 
 if [[ returnvalue == 0 ]]; 
 then
-  echo "json data is available"    
+  echo "user data is available"    
 		user=$(echo "$user_data" | jq '.users[] | select(.first_name == "'"$first_name"'" and .last_name == "'"$last_name"'")')
 
 		if [ -z "$user" ]; then
@@ -31,5 +31,5 @@ then
 			echo "User is not allowed to stay"
 		fi
 else
-    echo "no json data available"
+    echo "no user data available"
 fi
