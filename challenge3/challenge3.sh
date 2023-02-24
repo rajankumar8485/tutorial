@@ -1,53 +1,35 @@
 #!/bin/bash
 set -euo pipefail
 
-json_data = $(cat <<EOF
-	{
-		"users": [
-			{
-				"first_name": "John",
-				"last_name": "Smith",
-				"City": "Oklahoma",
-				"immigrationStauts": {
-					"allowed": false
-				}
-			},
-			{
-				"first_name": "Kevin",
-				"last_name": "Cordon",
-				"City": "New Jersey",
-				"immigrationStauts": {
-					"allowed": true
-				}
-			},
-			{
-				"first_name": "James",
-				"last_name": "Anderson",
-				"City": "Houston",
-				"immigrationStauts": {
-					"allowed": true
-				}
-			}
-		]
-	}
-EOF
-)
+user_data = $(cat "$1" | jq '.')
 
-echo $json_data 2> /dev/null || returnvalue=$?
+firstname = $2
+lastname = $3
+
+echo $user_data 2> /dev/null || returnvalue=$?
 
 if [[ returnvalue == 0 ]]; 
 then
   echo "json data is available"    
-		for users in $(echo "${json_data}" | jq -r '.users[] | @base64' ); do
+		user=$(echo "$user_data" | jq '.users[] | select(.first_name == "'"$first_name"'" and .last_name == "'"$last_name"'")')
 
-			decode_json_data = $(echo $users | base64 --decode)
+		if [ -z "$user" ]; then
+			echo "User not found"
+			exit 1
+		fi
 
-			FirstName=$(echo "${decode_json_data}" | jq -r '.first_name')
-			LastName=$(echo "${decode_json_data}" | jq -r '.last_name')
-			immigrationStauts=$(echo "${decode_json_data}" | jq -r '.immigrationStauts.allowed')
+		allowed=$(echo "$user" | jq '.immigrationStauts.allowed')
+		citizenship=$(echo "$user" | jq '.immigrationStauts.citizenship')
 
-			echo "User is : ${FirstName} ${LastName} and ImmigrationStatus allowed is ${immigrationStauts}"
-		done
+		if [ "$allowed" == "true" ]; then
+			if [ "$citizenship" == "true" ]; then
+				echo "User is allowed to stay and has citizenship"
+			else
+				echo "User is allowed to stay but does not have citizenship"
+			fi
+		else
+			echo "User is not allowed to stay"
+		fi
 else
     echo "no json data available"
 fi
