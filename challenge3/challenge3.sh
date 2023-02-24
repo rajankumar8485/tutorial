@@ -6,7 +6,7 @@ user_data = $(cat "$1" | jq '.')
 firstname = $2
 lastname = $3
 
-echo $user_data 2> /dev/null || returnvalue=$?
+echo $user_data 2> /dev/null && returnvalue=$?
 
 if [[ returnvalue == 0 ]]; 
 then
