@@ -105,9 +105,9 @@ module "services" {
 
   depends_on = [
     module.lb,
-		aws_security_group.this,
-		aws_security_group_rule.this,
-		data.aws_subnets.this
+    aws_security_group.this,
+    aws_security_group_rule.this,
+    data.aws_subnets.this
   ]
 
 }
@@ -119,7 +119,7 @@ module "lb" {
 
   region                 = var.aws-region
   environment            = var.environment
-	alb-vpc_id             = var.vpc_id
+  alb-vpc_id             = var.vpc_id
   alb-create             = lookup(each.value, "alb-create")
   alb-type               = lookup(each.value, "alb-type")
   load_balancer_type     = lookup(each.value, "load_balancer_type", "application")
@@ -132,10 +132,10 @@ module "lb" {
 
   tags = var.tags
 
-	depends_on = [
-		aws_security_group.this,
-		aws_security_group_rule.this,
-		data.aws_subnets.this
+  depends_on = [
+    aws_security_group.this,
+    aws_security_group_rule.this,
+    data.aws_subnets.this
   ]
 
 }
@@ -154,10 +154,11 @@ resource "aws_security_group_rule" "this" {
   for_each = local.sg_rule_settings
 
   type                     = each.value.rule_type
-  from_port                = each.value.from_port
-  to_port                  = each.value.to_port
-  protocol                 = each.value.protocol
-  source_security_group_id = aws_security_group.this[each.value.source_sg_name].id
+  from_port                = lookup(each.value, from_port, 80)
+  to_port                  = lookup(each.value, to_port, 80)
+  protocol                 = lookup(each.value, to_port, "tcp")
+  source_security_group_id = lookup(each.value, "source_sg_name", null) != null ? aws_security_group.this[each.value.source_sg_name].id : null
   security_group_id        = aws_security_group.this[each.value.sg_name].id
+  cidr_blocks              = lookup(each.value, "source_sg_name", null) != null ? lookup(each.value, "cidr_blocks") : null
 
 }
