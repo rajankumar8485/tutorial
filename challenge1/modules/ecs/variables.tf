@@ -6,6 +6,10 @@ variable "environment" {
   type = string
 }
 
+variable "resource_unique_id" {
+  type = string
+}
+
 variable "launch_type_compatibility" {
   type = string
 }

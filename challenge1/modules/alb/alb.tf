@@ -22,15 +22,15 @@ resource "aws_lb_target_group" "this" {
 
   name     = trim(substr("${local.resource_name_pattern}-tg", 0, 32), "-")
   vpc_id   = var.alb-vpc_id
-  port     = var.alb_port
-  protocol = var.protocol
+  port     = var.target_type != "lambda" ? var.alb_port : null
+  protocol = var.target_type != "lambda" ? var.protocol : null
 
   target_type          = var.target_type
   deregistration_delay = var.deregistration_delay
 
   health_check {
     enabled  = var.health_check-enabled
-    protocol = var.health_check-protocol
+    protocol = var.alb_port
     interval = var.health_check-interval
   }
 

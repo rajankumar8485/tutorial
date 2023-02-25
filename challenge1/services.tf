@@ -9,7 +9,7 @@ provider "aws" {
 }
 
 locals {
-	
+
   alb_settings = [for key in var.alb_settings :
     {
       resource_unique_id    = key.resource_unique_id
@@ -125,7 +125,6 @@ module "lb" {
   alb_port               = lookup(each.value, "alb_port", 80)
   protocol               = lookup(each.value, "alb_protocol", "HTTP")
   health_check-enabled   = lookup(each.value, "health_check-enabled", true)
-  health_check-protocol  = lookup(each.value, "alb_protocol", "HTTP")
   health_check-interval  = lookup(each.value, "health_check-interval", 30)
 
   tags = var.tags
