@@ -5,32 +5,22 @@ locals {
 
 }
 
-data "aws_region" "current" {}
-
 resource "aws_ecs_cluster" "this" {
 
   count = var.ecs_cluster-create ? 1 : 0
 
-  name = "${var.resource_name_pattern}_ecs_cluster"
+  name = "${local.resource_name_pattern}_ecs_cluster"
   tags = merge({
-    resource_name  = "${var.resource_name_pattern}_ecs_cluster"
+    resource_name  = "${local.resource_name_pattern}_ecs_cluster"
   }, var.tags)
-
-  dynamic "setting" {
-    for_each = var.ecs_cluster-container_insights ? var.ecs_cluster-container_setting : {}
-    content {
-      name  = lookup(var.ecs_cluster-container_setting, "name", "containerInsights")
-      value = lookup(var.ecs_cluster-container_setting, "value", "enabled")
-    }
-  }
 
 }
 
 resource "aws_ecs_service" "this" {
   count = var.ecs_service-create ? 1 : 0
 
-  name                               = "${var.resource_name_pattern}-ecs_service"
-  task_definition                    = var.ecs_service-task_definition_arn
+  name                               = "${local.resource_name_pattern}-ecs_service"
+  task_definition                    = aws_ecs_task_definition.this[count.index].arn
   iam_role                           = var.ecs_service-iam_role
   desired_count                      = var.ecs_service-desired_count
   cluster                            = aws_ecs_cluster.this[count.index].id
@@ -38,7 +28,7 @@ resource "aws_ecs_service" "this" {
   wait_for_steady_state              = var.ecs_service-wait_for_steady_state
   force_new_deployment               = var.ecs_service-force_new_deployment
 
-  launch_type      = length(var.ecs_service-capacity_provider_strategies) > 0 ? null : var.ecs_service-launch_type
+  launch_type      = var.ecs_service-capacity_provider_strategies == [] ? null : var.ecs_service-launch_type
   platform_version = var.ecs_service-platform_version
 
   dynamic "capacity_provider_strategy" {
@@ -62,7 +52,7 @@ resource "aws_ecs_service" "this" {
   }
 
   dynamic "load_balancer" {
-    for_each = var.load_balancer-target_groups
+    for_each = tolist([var.load_balancer-target_groups])
 
     content {
       container_name   = load_balancer.value.container_name
@@ -78,7 +68,7 @@ resource "aws_ecs_service" "this" {
 resource "aws_ecs_task_definition" "this" {
   count = var.task_definition-create ? 1 : 0
 
-  family                = var.family
+  family                = "${local.resource_name_pattern}-task_definition"
   container_definitions = var.container_definitions
   network_mode          = local.network_mode
 
