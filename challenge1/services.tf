@@ -29,6 +29,7 @@ locals {
     {
       ecs_service-create = key.ecs_service-create
       resource_unique_id = key.resource_unique_id
+      subnet_tier        = key.subnet_tier
       ecs_service-network_configuration = {
         subnets          = concat([element(data.aws_subnets.this[key.subnet_tier].ids, 0)], [element(data.aws_subnets.this[key.subnet_tier].ids, 1)])
         security_groups  = [aws_security_group.this[key.sg_name].id]
@@ -39,7 +40,6 @@ locals {
         target_group_arn = lookup(local.target_group_arns, "${key.resource_unique_id}-alb")
         container_port   = try(key.container_port, 80)
       }
-			subnet_tier           = key.subnet_tier
       container_definitions = jsonencode(file("${path.module}/containerdefs/${key.resource_unique_id}service.json"))
     }
   ]
