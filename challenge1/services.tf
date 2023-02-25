@@ -9,29 +9,64 @@ provider "aws" {
 }
 
 locals {
+  alb_settings = [for key in var.alb_settings :
+    {
+      resource_unique_id    = key.resource_unique_id
+      alb-create            = key.alb-create
+      alb-type              = key.alb-type
+      load_balancer_type    = key.load_balancer_type
+      security_groups       = [aws_security_group.this[key.sg_name].id]
+      alb-subnet_ids        = concat([element(data.aws_subnets.this[key.subnet_tier].ids, 0)],[element(data.aws_subnets.this[key.subnet_tier].ids, 1)])
+      alb_port              = try(key.alb_port, null)
+      protocol              = try(key.protocol, null)
+      health_check-enabled  = try(key.health_check-enabled, null)
+      health_check-interval = try(key.health_check-interval, null)
+      subnet_tier           = key.subnet_tier
+    }
+  ]
 
   ecs_settings = [for key in var.ecs_settings :
     {
       ecs_service-create = key.ecs_service-create
       resource_unique_id = key.resource_unique_id
       ecs_service-network_configuration = {
-        subnets          = key.subnet_ids
-        security_groups  = key.security_groups
+        subnets          = concat([element(data.aws_subnets.this[key.subnet_tier].ids, 0)],[element(data.aws_subnets.this[key.subnet_tier].ids, 1)])
+        security_groups  = [aws_security_group.this[key.sg_name].id]
         assign_public_ip = try(key.assign_public_ip, false)
       }
       load_balancer-target_groups = {
-        container_name   = "${key.resource_unique_id}-lb-container"
+        container_name   = "${key.resource_unique_id}-container"
         target_group_arn = "arn"
-        container_port   = try(key.container_port, 443)
+        container_port   = try(key.container_port, 80)
       }
       container_definitions = jsonencode(file("${path.module}/containerdefs/${key.resource_unique_id}ecs.json"))
     }
   ]
 
-  ecs_service_settings = { for key in local.ecs_settings : format("%s.%s", key.resource_unique_id, "service") => key }
+  alb_settings_map        = { for key in local.alb_settings : "${key.resource_unique_id}-alb" => key }
+  ecs_service_settings    = { for key in local.ecs_settings : "${key.resource_unique_id}-service" => key }
+  service_subnet_settings = { for key in local.ecs_settings : key.subnet_tier => key }
+
+  sg_settings      = { for key in var.sg_settings : key.sg_name => key }
+  sg_rule_settings = { for key in var.sg_rule_settings : "${key.sg_name}-${rule_name}" => key }
+
 }
 
 data "aws_caller_identity" "this" {}
+
+data "aws_subnets" "this" {
+  for_each = local.service_subnet_settings
+
+  filter {
+    name   = "vpc-id"
+    values = [var.vpc_id]
+  }
+
+  tags = {
+    Tier = key.subnet_tier
+  }
+
+}
 
 module "services" {
   source = "./modules/ecs"
@@ -61,6 +96,11 @@ module "services" {
   execution_role_arn                            = try(lookup(each.value, "execution_role_name", null)) != null ? "arn:aws:iam::${data.aws_caller_identity.this.account_id}:role/${lookup(each.value, "execution_role_name")}" : null
 
   tags = var.tags
+
+  depends_on = [
+    module.lb
+  ]
+
 }
 
 module "lb" {
@@ -75,11 +115,35 @@ module "lb" {
   load_balancer_type     = lookup(each.value, "load_balancer_type", "application")
   alb-security_group_ids = lookup(each.value, "load_balancer_type", "application") == "application" ? lookup(each.value, "security_groups", null) : null
   alb-subnet_ids         = lookup(each.value, "alb-subnet_ids")
-  alb-vpc_id             = lookup(each.value, "alb-vpc_id")
+  alb-vpc_id             = var.vpc_id
   alb_port               = lookup(each.value, "alb_port", 80)
   protocol               = lookup(each.value, "alb_protocol", "HTTP")
   health_check-enabled   = lookup(each.value, "health_check-enabled", true)
   health_check-protocol  = lookup(each.value, "alb_protocol", "HTTP")
   health_check-interval  = lookup(each.value, "health_check-interval", 30)
+
+  tags = var.tags
+
+}
+
+resource "aws_security_group" "this" {
+
+  for_each = local.sg_settings
+
+  name   = lookup(each.value, "sg_name")
+  vpc_id = var.vpc_id
+
+  tags = var.tags
+}
+
+resource "aws_security_group_rule" "this" {
+  for_each = local.sg_rule_settings
+
+  type                     = key.rule_type
+  from_port                = key.from_port
+  to_port                  = key.to_port
+  protocol                 = key.protocol
+  source_security_group_id = aws_security_group.this[key.source_sg_name].id
+  security_group_id        = aws_security_group.this[key.sg_name].id
 
 }
