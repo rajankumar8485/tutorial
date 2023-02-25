@@ -116,12 +116,12 @@ module "lb" {
 
   region                 = var.aws-region
   environment            = var.environment
+	alb-vpc_id             = var.vpc_id
   alb-create             = lookup(each.value, "alb-create")
   alb-type               = lookup(each.value, "alb-type")
   load_balancer_type     = lookup(each.value, "load_balancer_type", "application")
   alb-security_group_ids = lookup(each.value, "load_balancer_type", "application") == "application" ? lookup(each.value, "security_groups", null) : null
   alb-subnet_ids         = lookup(each.value, "alb-subnet_ids")
-  alb-vpc_id             = var.vpc_id
   alb_port               = lookup(each.value, "alb_port", 80)
   protocol               = lookup(each.value, "alb_protocol", "HTTP")
   health_check-enabled   = lookup(each.value, "health_check-enabled", true)
