@@ -91,7 +91,7 @@ module "services" {
   ecs_service-force_new_deployment              = lookup(each.value, "ecs_service-force_new_deployment", false)
   ecs_service-launch_type                       = lookup(each.value, "ecs_service-launch_type", "FARGATE")
   ecs_service-network_configuration             = lookup(each.value, "ecs_service-network_configuration")
-  ecs_service-platform_version                  = lookup(each.value, "ecs_service-launch_type", "FARGATE") == "FARGATE" ? try(lookup(each.value, "ecs_service-platform_version", null)) != null ? lookup(each.value, "ecs_service-platform_version") : null : null
+  ecs_service-platform_version                  = lookup(each.value, "ecs_service-launch_type", "FARGATE") == "FARGATE" ? lookup(each.value, "ecs_service-platform_version", null) != null ? lookup(each.value, "ecs_service-platform_version") : null : null
   load_balancer-target_groups                   = lookup(each.value, "load_balancer-target_groups")
   task_definition-create                        = lookup(each.value, "ecs_cluster-create") == true ? true : false
   launch_type_compatibility                     = lookup(each.value, "ecs_service-launch_type", "FARGATE")
