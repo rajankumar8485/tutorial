@@ -104,7 +104,10 @@ module "services" {
   tags = var.tags
 
   depends_on = [
-    module.lb
+    module.lb,
+		aws_security_group.this,
+		aws_security_group_rule.this,
+		data.aws_subnets.this
   ]
 
 }
@@ -128,6 +131,12 @@ module "lb" {
   health_check-interval  = lookup(each.value, "health_check-interval", 30)
 
   tags = var.tags
+
+	depends_on = [
+		aws_security_group.this,
+		aws_security_group_rule.this,
+		data.aws_subnets.this
+  ]
 
 }
 
