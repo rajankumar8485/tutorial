@@ -16,7 +16,7 @@ locals {
       alb-type              = key.alb-type
       load_balancer_type    = key.load_balancer_type
       security_groups       = [aws_security_group.this[key.sg_name].id]
-      alb-subnet_ids        = concat([element(data.aws_subnets.this[key.subnet_tier].ids, 0)],[element(data.aws_subnets.this[key.subnet_tier].ids, 1)])
+      alb-subnet_ids        = concat([element(data.aws_subnets.this[key.subnet_tier].ids, 0)], [element(data.aws_subnets.this[key.subnet_tier].ids, 1)])
       alb_port              = try(key.alb_port, null)
       protocol              = try(key.protocol, null)
       health_check-enabled  = try(key.health_check-enabled, null)
@@ -30,16 +30,17 @@ locals {
       ecs_service-create = key.ecs_service-create
       resource_unique_id = key.resource_unique_id
       ecs_service-network_configuration = {
-        subnets          = concat([element(data.aws_subnets.this[key.subnet_tier].ids, 0)],[element(data.aws_subnets.this[key.subnet_tier].ids, 1)])
+        subnets          = concat([element(data.aws_subnets.this[key.subnet_tier].ids, 0)], [element(data.aws_subnets.this[key.subnet_tier].ids, 1)])
         security_groups  = [aws_security_group.this[key.sg_name].id]
         assign_public_ip = try(key.assign_public_ip, false)
       }
       load_balancer-target_groups = {
         container_name   = "${key.resource_unique_id}-container"
-        target_group_arn = "arn"
+        target_group_arn = lookup(local.target_group_arns, "${key.resource_unique_id}-alb")
         container_port   = try(key.container_port, 80)
       }
-      container_definitions = jsonencode(file("${path.module}/containerdefs/${key.resource_unique_id}ecs.json"))
+			subnet_tier           = key.subnet_tier
+      container_definitions = jsonencode(file("${path.module}/containerdefs/${key.resource_unique_id}service.json"))
     }
   ]
 
@@ -49,6 +50,10 @@ locals {
 
   sg_settings      = { for key in var.sg_settings : key.sg_name => key }
   sg_rule_settings = { for key in var.sg_rule_settings : "${key.sg_name}-${rule_name}" => key }
+
+  target_group_arns = merge({
+    for k, v in module.lb : k => v.target_group_arn
+  })
 
 }
 
@@ -139,11 +144,11 @@ resource "aws_security_group" "this" {
 resource "aws_security_group_rule" "this" {
   for_each = local.sg_rule_settings
 
-  type                     = key.rule_type
-  from_port                = key.from_port
-  to_port                  = key.to_port
-  protocol                 = key.protocol
-  source_security_group_id = aws_security_group.this[key.source_sg_name].id
-  security_group_id        = aws_security_group.this[key.sg_name].id
+  type                     = each.value.rule_type
+  from_port                = each.value.from_port
+  to_port                  = each.value.to_port
+  protocol                 = each.value.protocol
+  source_security_group_id = aws_security_group.this[each.value.source_sg_name].id
+  security_group_id        = aws_security_group.this[each.value.sg_name].id
 
 }
