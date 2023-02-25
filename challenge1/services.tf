@@ -9,6 +9,7 @@ provider "aws" {
 }
 
 locals {
+	
   alb_settings = [for key in var.alb_settings :
     {
       resource_unique_id    = key.resource_unique_id
