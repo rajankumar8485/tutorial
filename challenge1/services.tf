@@ -98,8 +98,8 @@ module "services" {
   container_definitions                         = lookup(each.value, "container_definitions")
   cpu                                           = lookup(each.value, "cpu", 1024)
   memory                                        = lookup(each.value, "memory", 2048)
-  task_role_arn                                 = try(lookup(each.value, "task_role_name", null)) != null ? "arn:aws:iam::${data.aws_caller_identity.this.account_id}:role/${lookup(each.value, "task_role_name")}" : null
-  execution_role_arn                            = try(lookup(each.value, "execution_role_name", null)) != null ? "arn:aws:iam::${data.aws_caller_identity.this.account_id}:role/${lookup(each.value, "execution_role_name")}" : null
+  task_role_arn                                 = lookup(each.value, "task_role_name", null) != null ? "arn:aws:iam::${data.aws_caller_identity.this.account_id}:role/${lookup(each.value, "task_role_name")}" : null
+  execution_role_arn                            = lookup(each.value, "execution_role_name", null) != null ? "arn:aws:iam::${data.aws_caller_identity.this.account_id}:role/${lookup(each.value, "execution_role_name")}" : null
 
   tags = var.tags
 
