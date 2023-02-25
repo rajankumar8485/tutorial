@@ -23,12 +23,12 @@ locals {
       health_check-enabled  = try(key.health_check-enabled, null)
       health_check-interval = try(key.health_check-interval, null)
       subnet_tier           = key.subnet_tier
-    }
+    } if key.alb-create == true
   ]
 
   ecs_settings = [for key in var.ecs_settings :
     {
-      ecs_service-create = key.ecs_service-create
+      ecs_cluster-create = key.ecs_cluster-create
       resource_unique_id = key.resource_unique_id
       subnet_tier        = key.subnet_tier
       ecs_service-network_configuration = {
@@ -42,7 +42,7 @@ locals {
         container_port   = try(key.container_port, 80)
       }
       container_definitions = jsonencode(file("${path.module}/containerdefs/${key.resource_unique_id}service.json"))
-    }
+    } if key.ecs_cluster-create == true
   ]
 
   alb_settings_map        = { for key in local.alb_settings : "${key.resource_unique_id}-alb" => key }
