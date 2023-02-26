@@ -63,54 +63,54 @@ variable "sg_rule_settings" {
   type = list(any)
   default = [
     {
-      sg_name        = "backend-alb-sg"
-			rules = [
-				{
-					rule_type      = "ingress"
-					rule_name      = "rule1"
-					source_sg_name = "frontend-ecs-sg"
-				}
-			]
+      sg_name = "backend-alb-sg"
+      rules = [
+        {
+          rule_type      = "ingress"
+          rule_name      = "rule1"
+          source_sg_name = "frontend-ecs-sg"
+        }
+      ]
     },
     {
-      sg_name        = "backend-ecs-sg"
-			rules = [
-				{
-					rule_type      = "ingress"
-					rule_name      = "rule1"
-					source_sg_name = "backend-alb-sg"
-				}
-			]
+      sg_name = "backend-ecs-sg"
+      rules = [
+        {
+          rule_type      = "ingress"
+          rule_name      = "rule1"
+          source_sg_name = "backend-alb-sg"
+        }
+      ]
     },
     {
-      sg_name        = "frontend-ecs-sg"
-			rules = [
-				{
-					rule_type      = "ingress"
-					rule_name      = "rule1"
-					source_sg_name = "frontend-alb-sg"
-				}
-			]
+      sg_name = "frontend-ecs-sg"
+      rules = [
+        {
+          rule_type      = "ingress"
+          rule_name      = "rule1"
+          source_sg_name = "frontend-alb-sg"
+        }
+      ]
     },
     {
-      sg_name     = "frontend-alb-sg"
-			rules = [
-				{
-					rule_type   = "ingress"
-					rule_name   = "rule1"
-					cidr_blocks = ["0.0.0.0/0"]
-				}
-			]
+      sg_name = "frontend-alb-sg"
+      rules = [
+        {
+          rule_type   = "ingress"
+          rule_name   = "rule1"
+          cidr_blocks = ["0.0.0.0/0"]
+        }
+      ]
     },
-		{
-      sg_name     = "rds-sg"
-			rules = [
-				{
-					rule_type      = "ingress"
-					rule_name      = "rule1"
-					source_sg_name = "backend-ecs-sg"
-				}
-			]
+    {
+      sg_name = "rds-sg"
+      rules = [
+        {
+          rule_type      = "ingress"
+          rule_name      = "rule1"
+          source_sg_name = "backend-ecs-sg"
+        }
+      ]
     }
 
   ]
