@@ -1,7 +1,7 @@
 import requests
 import json
 
-metadata_url = 'http://169.254.169.254/latest/'
+ec2_metadata_url = 'http://169.254.169.254/latest/'
 
 
 def expand_tree(url, arr):
@@ -22,7 +22,7 @@ def expand_tree(url, arr):
 
 def get_metadata():
     initial = ["meta-data/"]
-    result = expand_tree(metadata_url, initial)
+    result = expand_tree(ec2_metadata_url, initial)
     return result
 
 
