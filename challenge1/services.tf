@@ -48,7 +48,9 @@ locals {
   alb_settings_map        = { for key in local.alb_settings : "${key.resource_unique_id}-alb" => key }
   ecs_service_settings    = { for key in local.ecs_settings : "${key.resource_unique_id}-service" => key }
   service_subnet_settings = { for key in local.ecs_settings : key.subnet_tier => key }
-  sg_rule_settings = { for sg in flatten([for key in var.sg_rule_settings : [for k in key.rules : { sg_name = key.sg_name, key = k }]]) : "${sg.sg_name}-${k.rule_name}" => sg }
+  
+	sg_settings = { for key in var.sg_rule_settings : key.sg_name => key }
+	sg_rule_settings = { for sg in flatten([for key in var.sg_rule_settings : [for k in key.rules : { sg_name = key.sg_name, key = k }]]) : "${sg.sg_name}-${k.rule_name}" => sg }
 
   target_group_arns = merge({
     for k, v in module.lb : k => v.target_group_arn
@@ -141,7 +143,7 @@ module "lb" {
 
 resource "aws_security_group" "this" {
 
-  for_each = local.sg_rule_settings
+  for_each = local.sg_settings
 
   name   = lookup(each.value, "sg_name")
   vpc_id = var.vpc_id
