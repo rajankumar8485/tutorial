@@ -32,5 +32,13 @@ def get_metadata_json():
     return metadata_json
 
 
+def is_json(myjson):
+    try:
+        json.loads(myjson)
+    except ValueError:
+        return False
+    return True
+
+
 if __name__ == '__main__':
     print(get_metadata_json())
