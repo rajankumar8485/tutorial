@@ -12,7 +12,7 @@ module "database" {
   rds-engine                   = var.rds-engine
   rds-engine_version           = var.rds-engine_version
   rds-port                     = var.rds-port
-  rds-db_subnet_name           = element(data.aws_subnets.this[Private].ids, 0)
+  rds-db_subnet_name           = element(data.aws_subnets.this[Database].ids, 0)
   rds-multi_az                 = var.rds-multi_az
   rds-security_group_ids       = [aws_security_group.this[rds-db].id]
   rds-publicly_accessible      = var.rds-publicly_accessible
